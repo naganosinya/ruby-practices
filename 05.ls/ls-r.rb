@@ -7,13 +7,14 @@ require 'optparse'
 def define_directory
   opt = OptionParser.new
   option = {}
+  directory = Dir.glob('*')
   opt.on('-r') { |boolean| option[:r] = boolean }
   opt.parse(ARGV)
 
   if option_r?(option)
-    Dir.glob('*').reverse
+    directory.reverse
   else
-    Dir.glob('*')
+    directory
   end
 end
 
