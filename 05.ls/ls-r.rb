@@ -11,11 +11,7 @@ def define_directory
   opt.on('-r') { |boolean| option[:r] = boolean }
   opt.parse(ARGV)
 
-  if option_r?(option)
-    directory.reverse
-  else
-    directory
-  end
+  option_r?(option) ? directory.reverse : directory
 end
 
 def option_r?(option)
