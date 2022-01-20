@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'pry'
+require 'optparse'
+require 'etc'
+
+FILE_TYPE = {
+  file: '-',
+  directory: 'd',
+  characterSpecial: 'c',
+  blockSpecial: 'b',
+  fifo: 'p',
+  link: 'l',
+  socket: 's'
+}.freeze
+
+FILE_MODE = {
+  '0' => '---',
+  '1' => '--x',
+  '2' => '-w-',
+  '3' => '-wx',
+  '4' => 'r--',
+  '5' => 'r-x',
+  '6' => 'rw-',
+  '7' => 'rwx'
+}.freeze
+
+OPTION = {}
+
+def define_directory
+  opt = OptionParser.new
+  directory = Dir.glob('*')
+  opt.on('-l') { |boolean| OPTION[:l] = boolean }
+  opt.parse(ARGV)
+  directory
+end
+
+def option_l?(option)
+  option.key?(:l)
+end
+
+def display_column
+  max_column_length = 3.0
+  display_column_num = (define_directory.size / max_column_length).ceil
+  display_column_lists = define_directory.each_slice(display_column_num).to_a
+  last_column = display_column_lists.last
+  (display_column_num - last_column.size).times { last_column << '' }
+
+  option_l?(OPTION) ? display_column_lists : display_column_lists.transpose
+end
+
+def column_margin
+  length = define_directory.map(&:length).max
+  margin = 3
+  length + margin
+end
+
+def dispaly_list_option(file)
+  fs = File.lstat(file)
+  type = fs.ftype.to_sym
+  mode = fs.mode.to_s(8).chomp.split('')
+  owner_permission = mode[-3]
+  group_permission = mode[-2]
+  other_permission = mode[-1]
+  number_of_hard_links = fs.nlink
+  user_name = Etc.getpwuid(fs.uid).name
+  group_name = Etc.getgrgid(fs.gid).name
+  file_size = fs.size
+  update_time = fs.mtime.strftime('%_m %e %H:%M')
+
+  print FILE_TYPE[type]
+  print "#{FILE_MODE[owner_permission]}#{FILE_MODE[group_permission]}#{FILE_MODE[other_permission]} "
+  print "#{number_of_hard_links} "
+  print "#{user_name}  "
+  print "#{group_name}  "
+  print "#{file_size} ".ljust(4)
+  print "#{update_time} "
+  print "#{file}"
+  puts ''
+end
+
+def main
+  display_column.each do |column|
+    if option_l?(OPTION)
+      column.each do |file|
+        dispaly_list_option(file)
+      end
+    else
+      column.each do |file|
+        print file.ljust(column_margin)
+      end
+      puts ''
+    end
+  end
+end
+
+main
