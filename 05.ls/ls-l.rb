@@ -26,28 +26,31 @@ FILE_MODE = {
   '7' => 'rwx'
 }.freeze
 
-OPTION = {}
+@option = {}
 
-def define_directory
+def option_parse
   opt = OptionParser.new
-  directory = Dir.glob('*')
-  opt.on('-l') { |boolean| OPTION[:l] = boolean }
+  opt.on('-l') { |boolean| @option[:l] = boolean }
   opt.parse(ARGV)
-  directory
 end
 
-def option_l?(option)
-  option.key?(:l)
+def define_directory
+  Dir.glob('*')
+end
+
+def option_l?
+  @option.key?(:l)
 end
 
 def display_column
+  option_parse
+
   max_column_length = 3.0
   display_column_num = (define_directory.size / max_column_length).ceil
   display_column_lists = define_directory.each_slice(display_column_num).to_a
   last_column = display_column_lists.last
   (display_column_num - last_column.size).times { last_column << '' }
-
-  option_l?(OPTION) ? display_column_lists : display_column_lists.transpose
+  option_l? ? display_column_lists : display_column_lists.transpose
 end
 
 def column_margin
@@ -56,7 +59,7 @@ def column_margin
   length + margin
 end
 
-def dispaly_list_option(file)
+def dispaly_l_option(file)
   fs = File.lstat(file)
   type = fs.ftype.to_sym
   mode = fs.mode.to_s(8).chomp.split('')
@@ -76,15 +79,31 @@ def dispaly_list_option(file)
   print "#{group_name}  "
   print "#{file_size} ".ljust(4)
   print "#{update_time} "
-  print "#{file}"
+  print file
   puts ''
 end
 
-def main
+def cal_total_blocks
+  total_blocks = 0
+
   display_column.each do |column|
-    if option_l?(OPTION)
+    column.each do |file|
+      total_blocks += File.lstat(file).blocks
+    end
+  end
+
+  "total #{total_blocks}"
+end
+
+def main
+  option_parse
+
+  puts cal_total_blocks if option_l?
+
+  display_column.each do |column|
+    if option_l?
       column.each do |file|
-        dispaly_list_option(file)
+        dispaly_l_option(file)
       end
     else
       column.each do |file|
