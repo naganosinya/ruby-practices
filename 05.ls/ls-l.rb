@@ -43,14 +43,12 @@ def option_l?
 end
 
 def display_column
-  option_parse
-
   max_column_length = 3.0
   display_column_num = (define_directory.size / max_column_length).ceil
   display_column_lists = define_directory.each_slice(display_column_num).to_a
   last_column = display_column_lists.last
   (display_column_num - last_column.size).times { last_column << '' }
-  option_l? ? display_column_lists : display_column_lists.transpose
+  display_column_lists.transpose
 end
 
 def column_margin
@@ -59,10 +57,14 @@ def column_margin
   length + margin
 end
 
+def get_permission(file_stat)
+  file_stat.mode.to_s(8).chomp.split('')
+end
+
 def dispaly_l_option(file)
   fs = File.lstat(file)
   type = fs.ftype.to_sym
-  mode = fs.mode.to_s(8).chomp.split('')
+  mode = get_permission(fs)
   owner_permission = mode[-3]
   group_permission = mode[-2]
   other_permission = mode[-1]
@@ -77,35 +79,31 @@ def dispaly_l_option(file)
   print "#{number_of_hard_links} "
   print "#{user_name}  "
   print "#{group_name}  "
-  print "#{file_size} ".ljust(4)
+  print "#{file_size} ".rjust(5)
   print "#{update_time} "
   print file
   puts ''
 end
 
 def cal_total_blocks
-  total_blocks = 0
-
-  display_column.each do |column|
-    column.each do |file|
-      total_blocks += File.lstat(file).blocks
-    end
+  total_blocks = display_column.sum do |column|
+    column.map do |file|
+      File.lstat(file).blocks
+    end.sum
   end
-
   "total #{total_blocks}"
 end
 
 def main
   option_parse
-
   puts cal_total_blocks if option_l?
 
-  display_column.each do |column|
-    if option_l?
-      column.each do |file|
-        dispaly_l_option(file)
-      end
-    else
+  if option_l?
+    define_directory.each do |file|
+      dispaly_l_option(file)
+    end
+  else
+    display_column.each do |column|
       column.each do |file|
         print file.ljust(column_margin)
       end
