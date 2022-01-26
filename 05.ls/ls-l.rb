@@ -64,10 +64,7 @@ end
 def dispaly_l_option(file)
   fs = File.lstat(file)
   type = fs.ftype.to_sym
-  mode = get_permission(fs)
-  owner_permission = mode[-3]
-  group_permission = mode[-2]
-  other_permission = mode[-1]
+  owner_permission, group_permission, other_permission = get_permission(fs)
   number_of_hard_links = fs.nlink
   user_name = Etc.getpwuid(fs.uid).name
   group_name = Etc.getgrgid(fs.gid).name
@@ -85,18 +82,15 @@ def dispaly_l_option(file)
   puts ''
 end
 
-def cal_total_blocks
-  total_blocks = display_column.sum do |column|
-    column.map do |file|
-      File.lstat(file).blocks
-    end.sum
-  end
-  "total #{total_blocks}"
+def cal_total_blocks(define_directory)
+  define_directory.map do |file|
+    File.lstat(file).blocks
+  end.sum
 end
 
 def main
   option_parse
-  puts cal_total_blocks if option_l?
+  puts "total #{cal_total_blocks(define_directory)}" if option_l?
 
   if option_l?
     define_directory.each do |file|
