@@ -41,15 +41,8 @@ def get_directory(option = 0)
 end
 
 def define_directory
-  if option_a? && option_r?
-    get_directory(File::FNM_DOTMATCH).reverse
-  elsif option_a?
-    get_directory(File::FNM_DOTMATCH)
-  elsif option_r?
-    get_directory.reverse
-  else
-    get_directory
-  end
+  directory = option_a? ? get_directory(File::FNM_DOTMATCH) : get_directory
+  option_r? ? directory.reverse : directory
 end
 
 def option_a?
@@ -86,7 +79,9 @@ end
 def dispaly_l_option(file)
   fs = File.lstat(file)
   type = fs.ftype.to_sym
-  owner_permission, group_permission, other_permission = get_permission(fs)
+  owner_permission = get_permission(fs)[-3]
+  group_permission = get_permission(fs)[-2]
+  other_permission = get_permission(fs)[-1]
   number_of_hard_links = fs.nlink
   user_name = Etc.getpwuid(fs.uid).name
   group_name = Etc.getgrgid(fs.gid).name
