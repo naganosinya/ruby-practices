@@ -16,7 +16,7 @@ def display_file_info(file)
 
   print count_lines
   if @option[:l]
-    puts file
+    puts " #{file}"
   else
     print " #{count_words} #{count_bytes} #{file}\n"
   end
