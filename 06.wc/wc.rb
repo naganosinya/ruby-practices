@@ -14,10 +14,11 @@ def display_file_info(file)
   count_words = File.read(file).split(/\s+/).size
   count_bytes = File.size(file)
 
-  if @option[:l] == true
-    puts "#{count_lines} #{file}"
+  print count_lines
+  if @option[:l]
+    puts file
   else
-    puts "#{count_lines} #{count_words} #{count_bytes} #{file}"
+    print " #{count_words} #{count_bytes} #{file}\n"
   end
 end
 
@@ -27,8 +28,22 @@ def defile_file(argv)
   end
 end
 
+def display_total(argv)
+  total_line = []
+  total_words = []
+  total_bytes = []
+
+  argv.each do |file|
+    total_line << File.read(file).lines.count
+    total_words << File.read(file).split(/\s+/).size
+    total_bytes << File.size(file)
+  end
+
+  puts "#{total_line.sum} #{total_words.sum} #{total_bytes.sum} total"
+end
+
 def display_input_info(content)
-  if @option[:l] == true
+  if @option[:l]
     puts content.lines.count.to_s
   else
     puts "#{content.to_s.lines.count} #{content.split(/\s+/).size} #{content.size}"
@@ -40,6 +55,7 @@ def main
     display_input_info($stdin.read)
   else
     defile_file(ARGV)
+    display_total(ARGV) if ARGV.size >= 2
   end
 end
 
