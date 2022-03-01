@@ -9,17 +9,22 @@ opt = OptionParser.new
 opt.on('-l') { |v| @option[:l] = v }
 opt.parse!(ARGV)
 
-def display_file_info(file)
-  count_lines = File.read(file).lines.count
-  count_words = File.read(file).split(/\s+/).size
-  count_bytes = File.size(file)
+def cal_lines_count(file)
+  file.lines.count
+end
 
-  print count_lines
-  if @option[:l]
-    puts " #{file}"
-  else
-    print " #{count_words} #{count_bytes} #{file}\n"
-  end
+def cal_words_count(file)
+  file.split(/\s+/).size
+end
+
+def display_file_info(file)
+  lines_count = cal_lines_count(File.read(file))
+  words_count = cal_words_count(File.read(file))
+  bytes_count = File.size(file)
+
+  print lines_count
+  print " #{words_count} #{bytes_count}" unless @option[:l]
+  print " #{file}\n"
 end
 
 def defile_file(argv)
@@ -34,20 +39,21 @@ def display_total(argv)
   total_bytes = []
 
   argv.each do |file|
-    total_line << File.read(file).lines.count
-    total_words << File.read(file).split(/\s+/).size
+    total_line << cal_lines_count(File.read(file))
+    total_words << cal_words_count(File.read(file))
     total_bytes << File.size(file)
   end
 
-  puts "#{total_line.sum} #{total_words.sum} #{total_bytes.sum} total"
+  print total_line.sum
+  print " #{total_words.sum} #{total_bytes.sum}" unless @option[:l]
+  print ' total'
 end
 
 def display_input_info(content)
-  if @option[:l]
-    puts content.lines.count.to_s
-  else
-    puts "#{content.to_s.lines.count} #{content.split(/\s+/).size} #{content.size}"
-  end
+  line_count = cal_lines_count(content)
+
+  print line_count
+  print " #{cal_words_count(content)} #{content.size}" unless @option[:l]
 end
 
 def main
